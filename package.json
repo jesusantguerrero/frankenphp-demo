@@ -3,11 +3,20 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "docker:up": "docker compose up -d",
+        "docker:down": "docker compose down",
+        "docker:update": "docker compose exec web composer update --ignore-platform-reqs",
+        "docker:generate": "docker compose exec -T web php artisan key:generate",
+        "docker:migrate": "docker compose exec web php artisan migrate",
+        "docker:schedule": "docker compose exec web php artisan schedule:work",
+        "docker:seed": "docker compose exec web php artisan db:seed",
+        "docker:set-accounts": "docker compose exec web php artisan journal:set-accounts",
+        "docker:artisan": "docker compose exec web php artisan"
     },
     "devDependencies": {
         "axios": "^1.6.1",
         "laravel-vite-plugin": "^1.0.0",
-        "vite": "^5.0.0"
+        "vite": "^5.0.10"
     }
 }
