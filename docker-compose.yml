@@ -9,11 +9,11 @@ services:
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - 80:80
-            - 443:443
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+            # - 80:80
+            # - 443:443
+            - '${VITE_PORT:-5174}:${VITE_PORT:-5173}'
         env_file:
-            - .env
+            - .env.docker
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
