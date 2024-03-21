@@ -1,52 +1,65 @@
+version: "3.7"
 services:
-    laravel.test:
+    web:
         build:
+            args:
+                uid: 1000
+                TZ: America\New_York
+                serverName: localhost
             context: ./docker-compose
             dockerfile: Dockerfile
-            args:
-                WWWGROUP: '${WWWGROUP}'
         image: franken/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            # - 80:80
-            # - 443:443
-            - '${VITE_PORT:-5174}:${VITE_PORT:-5173}'
+            - "80:80" # HTTP
+            - "443:443" # HTTPS
+            - "443:443/udp" # HTTP/3
         env_file:
-            - .env.docker
+        - .env.docker
         environment:
-            WWWUSER: '${WWWUSER}'
-            LARAVEL_SAIL: 1
-            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
-            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-            IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            DEBUG: "debug"
+            # Change the following value if you know how it works.
+            # MERCURE_TRANSPORT_URL: "bolt://mercure.db"
+            MERCURE_PUBLISHER_JWT_KEY: "${MERCURE_PUBLISHER_JWT_KEY}"
+            MERCURE_SUBSCRIBER_JWT_KEY: "${MERCURE_SUBSCRIBER_JWT_KEY}"
+            # In the cors_origin, add your domain(s). Or just use *
+            MERCURE_EXTRA_DIRECTIVES: |-
+                cors_origins "*"
+                anonymous
         volumes:
             - '.:/app'
-            - ./Caddyfile.dev:/etc/caddy/Caddyfile
+            - ./Caddyfile:/etc/caddy/Caddyfile
             - ./docker-compose/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
             - ./docker-compose/php.inis:/etc/php/8.3/cli/conf.d/php.ini
+            - caddy_data:/data
+            - caddy_config:/config
         networks:
-            - sail
+            - atmosphere
         depends_on:
             - mariadb
             - redis
-            - mailpit
     mariadb:
         image: 'mariadb:10'
+        restart: always
         ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
+            - "3308:3306"
+        env_file:
+            - .env.docker
         environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mariadb
         volumes:
-            - 'sail-mariadb:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+            - 'atmosphere_db:/var/lib/mysql'
+            - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+            - ./docker-compose/mysql:/home/root/cache/
         networks:
-            - sail
+            - atmosphere
         healthcheck:
             test:
                 - CMD
@@ -60,9 +73,9 @@ services:
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
-            - 'sail-redis:/data'
+            - 'atmosphere_redis:/data'
         networks:
-            - sail
+            - atmosphere
         healthcheck:
             test:
                 - CMD
@@ -70,18 +83,13 @@ services:
                 - ping
             retries: 3
             timeout: 5s
-    mailpit:
-        image: 'axllent/mailpit:latest'
-        ports:
-            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
-            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
-        networks:
-            - sail
 networks:
-    sail:
+    atmosphere:
         driver: bridge
 volumes:
-    sail-mariadb:
+    caddy_data:
+    caddy_config:
+    atmosphere_db:
         driver: local
-    sail-redis:
+    atmosphere_redis:
         driver: local
