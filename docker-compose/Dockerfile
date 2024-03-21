@@ -1,12 +1,20 @@
 FROM dunglas/frankenphp
 
-ARG WWWGROUP
+ARG user
+ARG uid
+ARG TZ
+ARG serverName
 
+ENV user $user
+ENV uid $uid
+ENV TZ $TZ
+ENV SERVER_NAME $serverName
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV TZ=UTC
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 RUN apt-get update \
     && mkdir -p /etc/apt/keyrings \
