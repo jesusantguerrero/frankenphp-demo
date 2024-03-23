@@ -1,0 +1,99 @@
+version: "3.7"
+services:
+    web:
+        build:
+            args:
+                uid: 1000
+                TZ: America\New_York
+                serverName: localhost
+            context: ./docker-compose
+            dockerfile: Dockerfile
+        image: franken/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - "80:80" # HTTP
+            - "443:443" # HTTPS
+            - "443:443/udp" # HTTP/3
+        env_file:
+        - .env.docker
+        environment:
+            SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+            MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+            MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+            MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
+            MERCURE_PUBLIC_URL: https://${SERVER_NAME:-localhost}/.well-known/mercure
+            MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
+            DEBUG: "debug"
+            # Change the following value if you know how it works.
+            # MERCURE_TRANSPORT_URL: "bolt://mercure.db"
+            # In the cors_origin, add your domain(s). Or just use *
+            MERCURE_EXTRA_DIRECTIVES: |-
+                cors_origins "*"
+                anonymous
+        volumes:
+            - '.:/app'
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - ./docker-compose/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
+            - ./docker-compose/php.inis:/etc/php/8.3/cli/conf.d/php.ini
+            - caddy_data:/data
+            - caddy_config:/config
+        networks:
+            - atmosphere
+        depends_on:
+            - mariadb
+            - redis
+    mariadb:
+        image: 'mariadb:10'
+        restart: always
+        ports:
+            - "3308:3306"
+        env_file:
+            - .env.docker
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mariadb
+        volumes:
+            - 'atmosphere_db:/var/lib/mysql'
+            - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+            - ./docker-compose/mysql:/home/root/cache/
+        networks:
+            - atmosphere
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-p${DB_PASSWORD}'
+            retries: 3
+            timeout: 5s
+    redis:
+        image: 'redis:alpine'
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'atmosphere_redis:/data'
+        networks:
+            - atmosphere
+        healthcheck:
+            test:
+                - CMD
+                - redis-cli
+                - ping
+            retries: 3
+            timeout: 5s
+networks:
+    atmosphere:
+        driver: bridge
+volumes:
+    caddy_data:
+    caddy_config:
+    atmosphere_db:
+        driver: local
+    atmosphere_redis:
+        driver: local

@@ -5,5 +5,5 @@ export interface ISite {
   results: string[];
   updatedAt: string;
   selector?: string;
-  selectorTemplate?: string;
+  selector_template?: string;
 }

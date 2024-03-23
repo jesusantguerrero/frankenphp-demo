@@ -4,13 +4,14 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "docker:up": "docker compose up -d",
-        "docker:down": "docker compose down",
+        "docker:up": "docker compose --file=compose.dev.yml up -d",
+        "docker:down": "docker compose --file=compose.dev.yml down",
         "docker:update": "docker compose exec web composer update --ignore-platform-reqs",
         "docker:generate": "docker compose exec -T web php artisan key:generate",
         "docker:migrate": "docker compose exec web php artisan migrate",
         "docker:migrate-fresh": "docker compose exec web php artisan migrate:fresh",
         "docker:schedule": "docker compose exec web php artisan schedule:work",
+        "docker:queue": "docker compose exec web php artisan queue:work",
         "docker:seed": "docker compose exec web php artisan db:seed",
         "docker:artisan": "docker compose exec web php artisan"
     },

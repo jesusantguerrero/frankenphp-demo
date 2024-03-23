@@ -16,6 +16,7 @@ use App\Http\Controllers\SiteController;
 */
 
 Route::get('/', [SiteController::class, 'index']);
+Route::post('/sites/check', [SiteController::class, 'check']);
 Route::resource('/sites', SiteController::class);
 
 Route::middleware([

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm, router} from '@inertiajs/vue3';
 import SiteTable from "@/Components/SiteTable.vue";
 
 defineProps<{
@@ -9,6 +9,17 @@ defineProps<{
     phpVersion: String,
     sites: any[]
 }>();
+
+
+const checkForm = useForm({});
+
+const checkSites = () => {
+    checkForm.post("/sites/check", {});
+}
+
+const refresh = () => {
+    router.reload();
+}
 </script>
 
 <template>
@@ -33,7 +44,7 @@ defineProps<{
             </div>
 
             <div class="mt-16 text-white">
-                <SiteTable :sites="sites" @check="runCheck" @saved="refresh" />
+                <SiteTable :sites="sites" @check="checkSites()" @saved="refresh" />
             </div>
 
             <div class="flex justify-center px-6 mt-16 sm:items-center sm:justify-between">

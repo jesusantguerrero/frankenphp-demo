@@ -50,4 +50,8 @@ class SiteController extends Controller
     {
         $this->siteService->remove($id);
     }
+
+    public function check() {
+        $this->siteService->runBackground(true);
+    }
 }

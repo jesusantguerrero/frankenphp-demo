@@ -11,6 +11,7 @@ class Site extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'actions' => 'array'
+        'actions' => 'array',
+        'results' => 'array'
     ];
 }

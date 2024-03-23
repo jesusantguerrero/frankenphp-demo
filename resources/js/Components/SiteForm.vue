@@ -8,10 +8,10 @@ const props = defineProps<{
 }>();
 
 const site = reactive({
-  title: "",
-  url: "",
-  selectorTemplate: "github",
-  selector: "",
+  title: props.siteData.title,
+  url: props.siteData.url,
+  selector_template: "github",
+  selector: props.siteData.selector,
 });
 
 watch(
@@ -20,11 +20,11 @@ watch(
     site.selector = data?.selector ?? "";
     site.title = data.title;
     site.url = data.url;
-    site.selectorTemplate = data?.selectorTemplate ?? "";
+    site.selector_template = data?.selector_template ?? "";
   }
 );
 
-const isGithubSite = computed(() => site.selectorTemplate == "github");
+const isGithubSite = computed(() => site.selector_template == "github");
 </script>
 
 <template>
@@ -61,7 +61,7 @@ const isGithubSite = computed(() => site.selectorTemplate == "github");
           <select
             name="selectorTemplate"
             id="selectorTemplate"
-            v-model="site.selectorTemplate"
+            v-model="site.selector_template"
             class="w-full px-5 py-2 text-white bg-gray-700 rounded-md"
           >
             <option value="github">Github</option>

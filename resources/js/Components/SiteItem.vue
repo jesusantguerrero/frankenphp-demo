@@ -10,23 +10,21 @@ const formatDate = (value: String) => {
 
 <template>
   <div class="flex justify-between w-full px-5 py-2 bg-gray-700" key="{key}">
-    <h4 class="w-full text-xl text-left uppercase">{{ site.title }}</h4>
-    <div class="w-full">
-      <a :href="site.url" class="underline" target="_blank"> {{ site.url }}</a>
-    </div>
+    <h4 class="w-full text-xl text-left uppercase">
+        <a :href="site.url" class="underline" target="_blank">
+            {{ site.title }}
+        </a>
+    </h4>
     <div
       class="flex items-center justify-end w-full space-x-2 text-right"
       v-if="site.results"
     >
       <span
-        class="px-2 py-1 bg-green-600 rounded-md"
+        class="px-2 py-1 bg-green-600 rounded-md text-xs min-w-fit"
         v-for="version in site.results"
         :key="version"
       >
         {{ version }} </span
-      >)
-      <span class="w-full text-sm text-left"
-        >At {{ formatDate(site.updatedAt) }}</span
       >
     </div>
     <div

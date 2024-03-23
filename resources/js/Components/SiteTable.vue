@@ -19,35 +19,35 @@ interface ISiteData {
   index?: number;
 }
 
-const siteData = reactive<ISiteData>({
-  id: undefined,
-  action: "",
-  value: "",
-  index: 0,
+const siteFormData = useForm({
+    id: undefined,
+    action: "",
+    value: "",
+    index: 0,
 });
-
-const siteFormData = useForm({});
-const onSubmit = (siteData: ISiteData) => {
+const onSubmit = (newData: ISiteData) => {
   if (siteFormData.processing) return;
   const formData = {
-    ...siteData,
+    id: siteFormData?.id ?? null,
+    ...newData,
     actions: [
       {
-        action: siteData.action,
-        value: siteData.value,
-        index: siteData.index || 0,
+        action: newData.action,
+        value: newData.value,
+        index: newData.index || 0,
       },
     ],
   };
 
-  const endpoint = `/sites/${siteData?.id ?? ''}`;
-  const method = siteData?.id ? "put" : "post";
+  const endpoint = `/sites/${siteFormData?.id ?? ''}`;
+  const method = siteFormData?.id ? "put" : "post";
   siteFormData
     .transform(() => ({...formData}))
     .submit(method, endpoint, {
         onSuccess() {
             isAdding.value = false;
             emit('saved')
+            siteFormData.reset()
         }
     })
 
@@ -60,6 +60,20 @@ const onDelete = (site: ISite) => {
     });
   }
 };
+
+const onEdit = (site: ISite) => {
+    siteFormData.id = site.id;
+    siteFormData.title = site.title;
+    siteFormData.selector = site.url;
+    siteFormData.actions = site.actions;
+    siteFormData.url = site.url;
+    isAdding.value = true;
+}
+
+const onCancel = () => {
+    isAdding.value = false;
+    siteFormData.reset()
+}
 </script>
 
 <template>
@@ -84,10 +98,9 @@ const onDelete = (site: ISite) => {
       </section>
     </header>
     <section class="overflow-hidden rounded-md">
-        {{  siteFormData.processing }}
       <SiteForm
         v-if="isAdding"
-        :site-data="siteData"
+        :site-data="siteFormData"
         :is-loading="siteFormData.processing"
         @cancel="isAdding = false"
         @submit="onSubmit"
@@ -96,7 +109,7 @@ const onDelete = (site: ISite) => {
         v-for="site in sites"
         :site="site"
         :key="site.id"
-        @edit="$emit('edit', site)"
+        @edit="onEdit(site)"
         @deleted="$emit('deleted', site)"
       />
     </section>
